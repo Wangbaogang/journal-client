@@ -1,0 +1,18 @@
+.journal-header {
+	color: #fff;
+	.page_link {
+		color: #fff;
+		cursor: pointer;
+		font-size: 18px;
+		margin-left: 10px
+	}
+	.site_title {
+		font-size: 24px;
+		font-family: 'Franklin Gothic Medium', 'Arial Narrow', Arial, sans-serif;
+	}
+}
+
+.journal-header-right {
+	float: right;
+	display: flex;
+}
