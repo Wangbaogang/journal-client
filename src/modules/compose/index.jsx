@@ -5,7 +5,7 @@ import Editor from '@/components/editor'
 import api from '@/common/api'
 class Compose extends Component {
 	state = {
-		editorState: {},
+		editorHtml: '',
 		journalId: null
 	}
 	render() {
@@ -16,9 +16,9 @@ class Compose extends Component {
 		</div>)
 	}
 
-	handleChange = (editorState) => {
+	handleChange = (editorHtml) => {
 		this.setState({
-			editorState
+			editorHtml
 		})
 	}
 
@@ -53,13 +53,11 @@ class Compose extends Component {
 	}
 
 	onSave = () => {
-		console.log(this.state.editorState)	
-		const content = this.state.editorState.getCurrentContent().getPlainText()
-
+		let {editorHtml} = this.state
 		if(this.state.journalId) {
-			this.updateJournal({content})
+			this.updateJournal({editorHtml})
 		} else {
-			this.createJournal({content})
+			this.createJournal({editorHtml})
 		}
 	}
 }
