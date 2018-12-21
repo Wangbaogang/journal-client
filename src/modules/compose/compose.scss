@@ -1,0 +1,17 @@
+.journal-compose {
+	
+  .journal-compose-title {
+		padding: 20px 0;
+		.Input {
+			height: 40px;
+			line-height: 40px;
+			font-size: 28px;
+			border: none;
+			box-shadow: none;
+			font-weight: 600;
+			padding: 0;
+			background-color: inherit;
+			resize: none;
+		}
+  }
+}

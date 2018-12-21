@@ -1,0 +1,46 @@
+.journal-editor {
+  .DraftEditor-root {
+    font-size: 16px;
+    line-height: 1.6;
+		min-height: 300px;
+    .public-DraftStyleDefault-pre {
+      margin: 1em 0;
+      padding: calc(0.8em / 0.9);
+      font-size: 0.9em;
+      word-wrap: normal;
+      white-space: pre;
+      overflow: auto;
+      background: #f6f6f6;
+      border-radius: 4px;
+		}
+		blockquote {
+			margin: 1em 0;
+			padding-left: 1em;
+			color: #646464;
+			border-left: 3px solid #D3D3D3;
+			+ blockquote {
+				margin-top: -1em;
+			}
+		}
+	
+  }
+  .journal-editor-wrap {
+    margin: 30px 0;
+  }
+  .journal-editor-toolbar {
+    padding: 5px 13px;
+    border-top: 1px solid #ebebeb;
+    border-bottom: 1px solid #ebebeb;
+    .tool-btn {
+      width: 32px;
+      height: 32px;
+      font-size: 18px;
+      line-height: 32px;
+      box-sizing: border-box;
+      border: none;
+      outline: none;
+      cursor: pointer;
+      background-color: transparent;
+    }
+  }
+}

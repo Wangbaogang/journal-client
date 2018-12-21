@@ -1,70 +1,82 @@
-import React, {Component} from 'react'
-import {Button, message} from 'antd'
+import React, { Component } from 'react'
+import { Button, Input, message } from 'antd'
 import qs from 'query-string'
 import Editor from '@/components/editor'
 import api from '@/common/api'
+import './compose.scss'
 class Compose extends Component {
-	state = {
-		editorHtml: '',
-		journalId: null
-	}
-	render() {
-		return (<div>
-			<p>write something</p>
-			<Editor style={styles} handleChange={this.handleChange}/>
-			<Button type="primary" onClick={this.onSave}>提交</Button>
-		</div>)
-	}
+  state = {
+    editorHtml: '',
+    journalId: null
+  }
+  render() {
+    return (
+      <div className="journal-compose">
+        <div className="journal-compose-title">
+          <Input.TextArea
+            className="Input"
+            rows="1"
+            placeholder="请输入标题，最多50字"
+            size="large"
+          />
+        </div>
 
-	handleChange = (editorHtml) => {
-		this.setState({
-			editorHtml
-		})
-	}
+        <Editor handleChange={this.handleChange} />
+        <Button type="primary" onClick={this.onSave}>
+          提交
+        </Button>
+      </div>
+    )
+  }
 
-	componentDidMount = () => {
-		console.log(this)
-		let params = qs.parse(this.props.location.search)
-		this.setState({
-			journalId: params.id
-		})
-		api.findJournalById(params.id).then(res => {
-			console.log(res)
-		})
-	}
+  handleChange = editorHtml => {
+    this.setState({
+      editorHtml
+    })
+  }
 
-	updateJournal = ({content}) => {
-		api.updateJournal({
-			title: 'test',
-			content,
-			id: this.state.journalId
-		}).then(() => {
-			message.info("提交成功")
-		})
-	}
+  componentDidMount = () => {
+    console.log(this)
+    let params = qs.parse(this.props.location.search)
+    this.setState({
+      journalId: params.id
+    })
+    api.findJournalById(params.id).then(res => {
+      console.log(res)
+    })
+  }
 
-	createJournal = ({content}) => {
-		api.createJournal({
-			title: 'test',
-			content
-		}).then(() => {
-			message.info("提交成功")
-		})
-	}
+  updateJournal = ({ content }) => {
+    api
+      .updateJournal({
+        title: 'test',
+        content,
+        id: this.state.journalId
+      })
+      .then(() => {
+        message.info('提交成功')
+      })
+  }
 
-	onSave = () => {
-		let {editorHtml} = this.state
-		if(this.state.journalId) {
-			this.updateJournal({editorHtml})
-		} else {
-			this.createJournal({editorHtml})
-		}
-	}
-}
+  createJournal = ({ content }) => {
+    api
+      .createJournal({
+        title: 'test',
+        content
+      })
+      .then(() => {
+        message.info('提交成功')
+      })
+  }
 
-const styles = {
-	border: '1px solid gray',
-	minHeight: '6em'
+  onSave = () => {
+    let { editorHtml } = this.state
+    if (this.state.journalId) {
+      this.updateJournal({ editorHtml })
+    } else {
+      this.createJournal({ editorHtml })
+    }
+  }
 }
 
 export default Compose
