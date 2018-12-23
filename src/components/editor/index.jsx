@@ -4,29 +4,17 @@ import {
   EditorState,
   ContentState,
   RichUtils,
-  Modifier,
   convertFromHTML,
-  DefaultDraftBlockRenderMap
 } from 'draft-js'
 import { stateToHTML } from 'draft-js-export-html'
 import { Icon, Tooltip } from 'antd'
 import Immutable from 'immutable'
 import Hr from './hr'
+import EditFont, { handleFontChange } from './compoents/font'
+import EditLink, { handleEditLink } from './compoents/link';
 import 'draft-js/dist/Draft.css'
 import './editor.scss'
 
-function myBlockRender(contentBlock) {
-  const type = contentBlock.getType()
-  if(type === 'hr') {
-    return {
-      component: Hr,
-      editable: false,
-      props: {
-
-      }
-    }
-  }
-}
 const doAction = [
   {
     el: (
@@ -46,38 +34,6 @@ const doAction = [
   }
 ]
 const styleAction = [
-  {
-    el: (
-      <Tooltip placement="top" title="粗体">
-        <Icon type="bold" />
-      </Tooltip>
-    ),
-    style: 'BOLD'
-  },
-  {
-    el: (
-      <Tooltip placement="top" title="斜体">
-        <Icon type="italic" />
-      </Tooltip>
-    ),
-    style: 'ITALIC'
-  },
-  {
-    el: (
-      <Tooltip placement="top" title="下划线">
-        <Icon type="underline" />
-      </Tooltip>
-    ),
-    style: 'UNDERLINE'
-  },
-  {
-    el: (
-      <Tooltip placement="top" title="删除线">
-        <Icon type="strikethrough" />
-      </Tooltip>
-    ),
-    style: 'STRIKETHROUGH'
-  },
   {
     el: (
       <Tooltip placement="top" title="标题">
@@ -145,9 +101,6 @@ class JEditor extends Component {
     })
     let html = stateToHTML(editorState.getCurrentContent())
     this.props.handleChange && this.props.handleChange(html)
-  }
-  setEditor = editor => {
-    this.editor = editor
   }
   focusEditor = () => {
     if (this.editor) {
@@ -229,10 +182,24 @@ class JEditor extends Component {
     })
   }
 
+  /**
+   * 字体变化的类型名称 i.e:粗体/BOLD
+   * @param {string} style 
+   */
+  _handleFontChange = (style) => {
+    let state = handleFontChange(this.state.editorState, style)
+    this.onChange(state)
+  }
+  _handleEditLink = () => {
+    let state = handleEditLink(this.state.editorState)
+    this.onChange(state)
+  }
   render() {
     return (
       <div className="journal-editor">
         <div className="journal-editor-toolbar">
+          <EditFont handleAction={this._handleFontChange} />
+          <EditLink handleAction={this._handleEditLink} />
           {doAction.map(item => (
             <button
               className="tool-btn"
@@ -269,15 +236,14 @@ class JEditor extends Component {
         </div>
         <div className="journal-editor-wrap">
           <Editor
-            ref={this.setEditor}
+            ref="editor"
             editorState={this.state.editorState}
             handleKeyCommand={this.handleKeyCommand}
             placeholder="写点什么..."
             customStyleMap={customColorStyleMap}
-            blockRendererFn={myBlockRender}
             onChange={this.onChange}
-            onBlur={() => {}}
-            onFocus={() => {}}
+            onBlur={() => { }}
+            onFocus={() => { }}
           />
         </div>
       </div>
