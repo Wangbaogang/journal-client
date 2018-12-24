@@ -5,95 +5,31 @@ import {
   ContentState,
   RichUtils,
   convertFromHTML,
+  CompositeDecorator,
+  AtomicBlockUtils
 } from 'draft-js'
 import { stateToHTML } from 'draft-js-export-html'
 import { Icon, Tooltip } from 'antd'
 import Immutable from 'immutable'
-import Hr from './hr'
-import EditFont, { handleFontChange } from './compoents/font'
-import EditLink, { handleEditLink } from './compoents/link';
+import EditFont, { handleFontChange } from './compoents/fontStyle'
+import EditLink, { handleEditLink, getLinkDecoratorDescribe } from './compoents/link';
+import EditorDo, { handleDoStack } from './compoents/doStack'
+import EditBlock, { toggleBlockStyle, toggleCode } from './compoents/blockStyle'
+import EditSplitLine, { insertSplitLine, getDividerDecoratorDescribe } from './compoents/splitLine'
 import 'draft-js/dist/Draft.css'
 import './editor.scss'
 
-const doAction = [
-  {
-    el: (
-      <Tooltip placement="top" title="撤销">
-        <Icon type="undo" />
-      </Tooltip>
-    ),
-    action: 'undo'
-  },
-  {
-    el: (
-      <Tooltip placement="top" title="重做">
-        <Icon type="redo" />
-      </Tooltip>
-    ),
-    action: 'redo'
-  }
-]
-const styleAction = [
-  {
-    el: (
-      <Tooltip placement="top" title="标题">
-        H
-      </Tooltip>
-    ),
-    style: 'header-two',
-    type: 'block'
-  },
-  {
-    el: (
-      <Tooltip placement="top" title="无序列表">
-        <Icon type="bars" />
-      </Tooltip>
-    ),
-    style: 'unordered-list-item',
-    type: 'block'
-  },
-  {
-    el: (
-      <Tooltip placement="top" title="有序列表">
-        <Icon type="ordered-list" />
-      </Tooltip>
-    ),
-    style: 'ordered-list-item',
-    type: 'block'
-  },
-  {
-    el: (
-      <Tooltip placement="top" title="代码块">
-        <Icon type="code" />
-      </Tooltip>
-    ),
-    style: 'code-block',
-    type: 'block'
-  },
-  {
-    el: (
-      <Tooltip placement="top" title="引用块">
-        “
-      </Tooltip>
-    ),
-    style: 'blockquote',
-    type: 'block'
-  },
-  {
-    el: (
-      <Tooltip placement="top" title="分割线">
-        —
-      </Tooltip>
-    ),
-    style: 'hr',
-    type: 'block'
-  }
-]
 const customColorStyleMap = {}
-
+//装饰器
+const decorator = new CompositeDecorator([
+  //装饰链接
+  getLinkDecoratorDescribe(),
+  //装饰分割线
+  getDividerDecoratorDescribe()
+])
 class JEditor extends Component {
   state = {
-    editorState: EditorState.createEmpty()
+    editorState: EditorState.createEmpty(decorator)
   }
   onChange = editorState => {
     this.setState({
@@ -109,7 +45,6 @@ class JEditor extends Component {
   }
   componentDidMount = () => {
     this.focusEditor()
-    console.log(this.editor)
   }
   /* 快捷键设置 */
   handleKeyCommand = command => {
@@ -119,31 +54,6 @@ class JEditor extends Component {
       return 'handled'
     }
     return 'not-handled'
-  }
-
-  toggleInlineStyle = style => {
-    let state = RichUtils.toggleInlineStyle(this.state.editorState, style)
-    this.onChange(state)
-  }
-
-  toggleBlockType = style => {
-    let state = RichUtils.toggleBlockType(this.state.editorState, style)
-    this.onChange(state)
-  }
-
-  toggleCode = () => {
-    let state = RichUtils.toggleCode(this.state.editorState)
-    this.onChange(state)
-  }
-
-  undo = () => {
-    let state = EditorState.undo(this.state.editorState)
-    this.onChange(state)
-  }
-
-  redo = () => {
-    let state = EditorState.redo(this.state.editorState)
-    this.onChange(state)
   }
 
   insertHTML = text => {
@@ -177,9 +87,7 @@ class JEditor extends Component {
     )
 
     const newEditorState = EditorState.createWithContent(newContentState)
-    this.setState({
-      editorState: newEditorState
-    })
+    return newEditorState
   }
 
   /**
@@ -187,52 +95,53 @@ class JEditor extends Component {
    * @param {string} style 
    */
   _handleFontChange = (style) => {
-    let state = handleFontChange(this.state.editorState, style)
+    let state = handleFontChange(style, this.state.editorState)
     this.onChange(state)
   }
   _handleEditLink = () => {
     let state = handleEditLink(this.state.editorState)
     this.onChange(state)
   }
+  _handleDoStack = (style) => {
+    let state = handleDoStack(style, this.state.editorState)
+    this.onChange(state)
+  }
+  _toggleBlockStyle = (style) => {
+    let state = style === 'code-block' ? toggleCode(this.state.editorState) : toggleBlockStyle(style, this.state.editorState)
+    this.onChange(state)
+  }
+  _insertSplitLine = () => {
+    let state = insertSplitLine(this.state.editorState)
+    this.onChange(state)
+
+  }
   render() {
+    const doAction = [
+      {
+        el: (
+          <Tooltip placement="top" title="撤销">
+            <Icon type="undo" />
+          </Tooltip>
+        ),
+        action: 'undo'
+      },
+      {
+        el: (
+          <Tooltip placement="top" title="重做">
+            <Icon type="redo" />
+          </Tooltip>
+        ),
+        action: 'redo'
+      }
+    ]
     return (
       <div className="journal-editor">
         <div className="journal-editor-toolbar">
+          <EditorDo handleAction={this._handleDoStack} />
           <EditFont handleAction={this._handleFontChange} />
+          <EditBlock handleAction={this._toggleBlockStyle} />
           <EditLink handleAction={this._handleEditLink} />
-          {doAction.map(item => (
-            <button
-              className="tool-btn"
-              onClick={evt => {
-                evt.persist()
-                let { action } = item
-                if (action === 'undo') {
-                  this.undo()
-                } else {
-                  this.redo()
-                }
-              }}
-              key={item.action}
-            >
-              {item.el}
-            </button>
-          ))}
-          {styleAction.map(item => (
-            <button
-              className="tool-btn"
-              onClick={evt => {
-                evt.persist()
-                console.log(item)
-                if (item.style === 'code-block') return this.toggleCode()
-                if (item.type !== 'block')
-                  return this.toggleInlineStyle(item.style)
-                this.toggleBlockType(item.style)
-              }}
-              key={item.style}
-            >
-              {item.el}
-            </button>
-          ))}
+          <EditSplitLine handleAction={this._insertSplitLine} />
         </div>
         <div className="journal-editor-wrap">
           <Editor

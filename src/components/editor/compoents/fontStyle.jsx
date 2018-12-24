@@ -7,7 +7,7 @@ import { RichUtils } from 'draft-js'
  * @param {EditorState} editorState 
  * @param {string} style 
  */
-function handleFontChange(editorState, style) {
+function handleFontChange(style, editorState) {
     let state = RichUtils.toggleInlineStyle(editorState, style)
     return state
 }
@@ -16,7 +16,7 @@ export { handleFontChange }
 
 class EditFont extends Component {
     render() {
-        return <div className="journal-editor-font" style={{ display: 'inline-block' }}>
+        return <div className="journal-editor-font tool-btns">
             {
                 FontActions.map(action => {
                     return <button
