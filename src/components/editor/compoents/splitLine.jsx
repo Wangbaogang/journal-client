@@ -1,6 +1,7 @@
 import React, { Component } from 'react'
 import { Modifier, EditorState, RichUtils, AtomicBlockUtils } from 'draft-js'
 import { Tooltip, Icon } from 'antd'
+import MyIcon from '../common/icon'
 import util from '../util'
 
 /* 装饰器自定义组件 */
@@ -53,9 +54,9 @@ class SplitLine extends Component {
     this.props.handleAction()
   }
   render() {
-    return <button onClick={this.handleClick}>
+    return <button onClick={this.handleClick} className="tool-btn">
       <Tooltip placement="top" title="分割线">
-        <Icon type="" />split
+        <MyIcon type="icon-fengexian" />
       </Tooltip>
     </button>
   }

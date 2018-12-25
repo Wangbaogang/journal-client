@@ -2,6 +2,7 @@ import React, { Component } from 'react'
 import { Modal, Form, Input, Tooltip } from 'antd'
 import { Modifier, RichUtils, EditorState, SelectionState } from 'draft-js'
 import util from '../util'
+import MyIcon from '../common/icon'
 
 /* 装饰器自定义组件 */
 const _Link = (props) => {
@@ -118,9 +119,9 @@ class EditLink extends Component {
     }
     render() {
         return <div className="tool-btns">
-            <button onClick={this.onPromptLink}>
+            <button onClick={this.onPromptLink} className="tool-btn">
                 <Tooltip title="插入链接">
-                    link
+                    <MyIcon type="icon-lianjie" />
                 </Tooltip>
             </button>
             <Modal
