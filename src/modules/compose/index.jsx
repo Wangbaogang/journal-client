@@ -6,8 +6,9 @@ import api from '@/common/api'
 import './compose.scss'
 class Compose extends Component {
   state = {
-    editorHtml: '',
-    journalId: null
+    content: '',
+    journalId: null,
+    title: ''
   }
   render() {
     return (
@@ -18,10 +19,14 @@ class Compose extends Component {
             rows="1"
             placeholder="请输入标题，最多50字"
             size="large"
+            value={this.state.title}
           />
         </div>
 
-        <Editor handleChange={this.handleChange} />
+        <Editor
+          handleChange={this.handleChange}
+          content={this.state.content}
+          title={this.state.title} />
         <Button type="primary" onClick={this.onSave}>
           提交
         </Button>
@@ -29,20 +34,21 @@ class Compose extends Component {
     )
   }
 
-  handleChange = editorHtml => {
+  handleChange = content => {
     this.setState({
-      editorHtml
+      content
     })
   }
 
   componentDidMount = () => {
-    console.log(this)
     let params = qs.parse(this.props.location.search)
-    this.setState({
-      journalId: params.id
-    })
+
     api.findJournalById(params.id).then(res => {
-      console.log(res)
+      this.setState({
+        journalId: params.id,
+        content: res.data.content,
+        title: res.data.title
+      })
     })
   }
 

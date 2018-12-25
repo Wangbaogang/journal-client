@@ -59,8 +59,13 @@ async function logout() {
   return response
 }
 
-async function findJournals() {
-  let response = await _postData('/api/findJournals', {})
+async function findJournals({
+  pageSize,
+  pageNumber
+}) {
+  let response = await _postData('/api/findJournals', {
+    pageNumber, pageSize
+  })
   return response
 }
 

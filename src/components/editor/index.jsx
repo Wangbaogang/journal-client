@@ -28,15 +28,30 @@ const decorator = new CompositeDecorator([
   getDividerDecoratorDescribe()
 ])
 class JEditor extends Component {
-  state = {
-    editorState: EditorState.createEmpty(decorator)
+  props = {
+    content: '',
   }
-  onChange = editorState => {
+  state = {
+    editorState: EditorState.createEmpty(decorator),
+    currentContent: ''
+  }
+  componentWillReceiveProps = (props) => {
+    if (props.content) {
+      let { contentBlocks, entityMap } = convertFromHTML(props.content)
+      const contentState = ContentState.createFromBlockArray(
+        contentBlocks,
+        entityMap
+      )
+      const editorState = EditorState.push(this.state.editorState, contentState, 'insert-fragment')
+      this.onChange(editorState, true)
+    }
+    return true
+
+  }
+  onChange = (editorState, silent) => {
     this.setState({
       editorState
     })
-    let html = stateToHTML(editorState.getCurrentContent())
-    this.props.handleChange && this.props.handleChange(html)
   }
   focusEditor = () => {
     if (this.editor) {
