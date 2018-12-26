@@ -7,10 +7,7 @@ import util from '../util'
 /* 装饰器自定义组件 */
 const _Divider = (props) => {
   console.log(props)
-  return <div className="journal-editor-divider">
-    <hr />
-    <p></p>
-  </div>
+  return <hr />
 }
 /**
 * 寻找符合实体
@@ -36,6 +33,34 @@ export const getDividerDecoratorDescribe = () => {
     component: _Divider
   }
 }
+
+/**
+ * 光标位于分割线实体内，点击退格键会产生与用户预期不符的结果，在此trick
+ * @param {string} command 
+ * @param {*} editorState 
+ */
+export const spliteLineBackSpaceTrick = (command, editorState) => {
+  if (command === 'backspace') {
+    const contentState = editorState.getCurrentContent()
+    const selectionState = editorState.getSelection();
+    const endKey = selectionState.getEndKey()
+    const block = contentState.getBlockForKey(endKey)
+    let isHr = false
+    _findDividerEntities(block, (...range) => {
+      console.log(range)
+      if (range.length === 2) {
+        isHr = true
+      }
+    }, contentState)
+    console.log(selectionState)
+    if (isHr) {
+      const newContentState = Modifier.removeRange(contentState, selectionState)
+      return EditorState.push(editorState, newContentState, 'remove-range')
+    }
+  }
+  return editorState
+}
+
 export const insertSplitLine = (editorState) => {
   const contentState = editorState.getCurrentContent()
 

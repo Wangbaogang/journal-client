@@ -11,11 +11,11 @@ import {
 import { stateToHTML } from 'draft-js-export-html'
 import { Icon, Tooltip } from 'antd'
 import Immutable from 'immutable'
-import EditFont, { handleFontChange } from './compoents/fontStyle'
-import EditLink, { handleEditLink, getLinkDecoratorDescribe } from './compoents/link';
-import EditorDo, { handleDoStack } from './compoents/doStack'
-import EditBlock, { toggleBlockStyle, toggleCode } from './compoents/blockStyle'
-import EditSplitLine, { insertSplitLine, getDividerDecoratorDescribe } from './compoents/splitLine'
+import EditFont, { handleFontChange } from './components/fontStyle'
+import EditLink, { handleEditLink, getLinkDecoratorDescribe } from './components/link';
+import EditorDo, { handleDoStack } from './components/doStack'
+import EditBlock, { toggleBlockStyle, toggleCode } from './components/blockStyle'
+import EditSplitLine, { insertSplitLine, getDividerDecoratorDescribe, spliteLineBackSpaceTrick } from './components/splitLine'
 import 'draft-js/dist/Draft.css'
 import './editor.scss'
 
@@ -51,6 +51,8 @@ class JEditor extends Component {
   onChange = (editorState, silent) => {
     this.setState({
       editorState
+    }, () => {
+      this.focusEditor()
     })
   }
   focusEditor = () => {
@@ -61,14 +63,20 @@ class JEditor extends Component {
   componentDidMount = () => {
     this.focusEditor()
   }
+
   /* 快捷键设置 */
   handleKeyCommand = command => {
-    const newState = RichUtils.handleKeyCommand(this.state.editorState, command)
-    if (newState) {
-      this.onChange(newState)
-      return 'handled'
+    const HANDLED = 'handled'
+    const NOT_HANDLED = 'not-handled'
+    let state
+    state = spliteLineBackSpaceTrick(command, this.state.editorState)
+
+    state = RichUtils.handleKeyCommand(state || this.state.editorState, command)
+    if (state) {
+      this.onChange(state)
+      return HANDLED
     }
-    return 'not-handled'
+    return NOT_HANDLED
   }
 
   insertHTML = text => {
