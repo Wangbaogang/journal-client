@@ -4,9 +4,10 @@ import qs from 'query-string'
 import Editor from '@/components/editor'
 import api from '@/common/api'
 import './compose.scss'
+import appState from '../../store/index'
+
 class Compose extends Component {
   state = {
-    content: '',
     journalId: null,
     title: ''
   }
@@ -25,7 +26,6 @@ class Compose extends Component {
 
         <Editor
           handleChange={this.handleChange}
-          content={this.state.content}
           title={this.state.title} />
         <Button type="primary" onClick={this.onSave}>
           提交
@@ -77,6 +77,8 @@ class Compose extends Component {
 
   onSave = () => {
     let { editorHtml } = this.state
+
+    console.log(appState.rawContent)
     if (this.state.journalId) {
       this.updateJournal({ editorHtml })
     } else {

@@ -6,16 +6,15 @@ import {
   RichUtils,
   convertFromHTML,
   CompositeDecorator,
-  AtomicBlockUtils
 } from 'draft-js'
-import { stateToHTML } from 'draft-js-export-html'
-import { Icon, Tooltip } from 'antd'
-import Immutable from 'immutable'
+import { autorun } from 'mobx'
+import { observer } from 'mobx-react'
+import appState from '../../store/index'
 import EditFont, { handleFontChange } from './components/fontStyle'
-import EditLink, { handleEditLink, getLinkDecoratorDescribe } from './components/link';
+import EditLink, { handleEditLink, getLinkDecoratorDescribe, toggleLinkToolTip } from './components/link/index';
 import EditorDo, { handleDoStack } from './components/doStack'
 import EditBlock, { toggleBlockStyle, toggleCode } from './components/blockStyle'
-import EditSplitLine, { insertSplitLine, getDividerDecoratorDescribe, spliteLineBackSpaceTrick } from './components/splitLine'
+import EditDivider, { insertDivider, getDividerDecoratorDescribe, dividerBackSpaceTrick } from './components/divider'
 import 'draft-js/dist/Draft.css'
 import './editor.scss'
 
@@ -27,13 +26,15 @@ const decorator = new CompositeDecorator([
   //装饰分割线
   getDividerDecoratorDescribe()
 ])
-class JEditor extends Component {
+@observer class JEditor extends Component {
   props = {
     content: '',
   }
   state = {
-    editorState: EditorState.createEmpty(decorator),
     currentContent: ''
+  }
+  componentWillMount() {
+    appState.editorState = EditorState.createEmpty(decorator)
   }
   componentWillReceiveProps = (props) => {
     if (props.content) {
@@ -42,22 +43,26 @@ class JEditor extends Component {
         contentBlocks,
         entityMap
       )
-      const editorState = EditorState.push(this.state.editorState, contentState, 'insert-fragment')
-      this.onChange(editorState, true)
+      const editorState = EditorState.push(appState.editorState, contentState, 'insert-fragment')
+      this.onChange(editorState)
     }
     return true
 
   }
-  onChange = (editorState, silent) => {
-    this.setState({
-      editorState
-    }, () => {
-      this.focusEditor()
+
+  onChange = (editorState, action) => {
+    appState.editorState = editorState
+    autorun(() => {
+      /* 链接tooltip展示 */
+      setTimeout(() => {
+        toggleLinkToolTip(editorState)
+      }, 0)
     })
   }
+
   focusEditor = () => {
-    if (this.editor) {
-      this.editor.focus()
+    if (this.refs.editor) {
+      this.refs.editor.focus()
     }
   }
   componentDidMount = () => {
@@ -66,12 +71,13 @@ class JEditor extends Component {
 
   /* 快捷键设置 */
   handleKeyCommand = command => {
+    console.log(command, 'handleKeyCommand')
     const HANDLED = 'handled'
     const NOT_HANDLED = 'not-handled'
     let state
-    state = spliteLineBackSpaceTrick(command, this.state.editorState)
+    state = dividerBackSpaceTrick(command, appState.editorState)
 
-    state = RichUtils.handleKeyCommand(state || this.state.editorState, command)
+    state = RichUtils.handleKeyCommand(state || appState.editorState, command)
     if (state) {
       this.onChange(state)
       return HANDLED
@@ -118,45 +124,29 @@ class JEditor extends Component {
    * @param {string} style 
    */
   _handleFontChange = (style) => {
-    let state = handleFontChange(style, this.state.editorState)
+    let state = handleFontChange(style, appState.editorState)
     this.onChange(state)
   }
   _handleEditLink = () => {
-    let state = handleEditLink(this.state.editorState)
+    let state = handleEditLink(appState.editorState)
     this.onChange(state)
   }
   _handleDoStack = (style) => {
-    let state = handleDoStack(style, this.state.editorState)
+    let state = handleDoStack(style, appState.editorState)
     this.onChange(state)
   }
   _toggleBlockStyle = (style) => {
-    let state = style === 'code-block' ? toggleCode(this.state.editorState) : toggleBlockStyle(style, this.state.editorState)
+    let state = style === 'code-block' ? toggleCode(appState.editorState) : toggleBlockStyle(style, appState.editorState)
     this.onChange(state)
   }
-  _insertSplitLine = () => {
-    let state = insertSplitLine(this.state.editorState)
+  _insertDivider = () => {
+    let state = insertDivider(appState.editorState)
     this.onChange(state)
-
+  }
+  _handleFocus(evt) {
+    console.log('focus')
   }
   render() {
-    const doAction = [
-      {
-        el: (
-          <Tooltip placement="top" title="撤销">
-            <Icon type="undo" />
-          </Tooltip>
-        ),
-        action: 'undo'
-      },
-      {
-        el: (
-          <Tooltip placement="top" title="重做">
-            <Icon type="redo" />
-          </Tooltip>
-        ),
-        action: 'redo'
-      }
-    ]
     return (
       <div className="journal-editor">
         <div className="journal-editor-toolbar">
@@ -164,18 +154,17 @@ class JEditor extends Component {
           <EditFont handleAction={this._handleFontChange} />
           <EditBlock handleAction={this._toggleBlockStyle} />
           <EditLink handleAction={this._handleEditLink} />
-          <EditSplitLine handleAction={this._insertSplitLine} />
+          <EditDivider handleAction={this._insertDivider} />
         </div>
-        <div className="journal-editor-wrap">
+        <div className="journal-editor-wrap" onClick={this.focusEditor}>
           <Editor
             ref="editor"
-            editorState={this.state.editorState}
+            editorState={appState.editorState}
             handleKeyCommand={this.handleKeyCommand}
             placeholder="写点什么..."
             customStyleMap={customColorStyleMap}
             onChange={this.onChange}
-            onBlur={() => { }}
-            onFocus={() => { }}
+          // onFocus={this._handleFocus}
           />
         </div>
       </div>
